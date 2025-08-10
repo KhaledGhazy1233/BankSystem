@@ -16,6 +16,7 @@ namespace Domainlayer.BankSystem.Entites
         public string IpAddress { get; set;}
         public  int TransTy{ get; set; }
         public int UserId { get; set; }
+        public bool ISDeleted { get; set; } = false;
         public DateTime DateTime { get; set; }
         public User user { get; set; }
         public TransactionType ?TransactionType { get; set; }

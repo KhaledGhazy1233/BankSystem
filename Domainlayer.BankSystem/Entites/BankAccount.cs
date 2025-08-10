@@ -19,11 +19,11 @@ namespace Domainlayer.BankSystem.Entites
         public DateTime CreatedData { get; set; }
         public DateTime UpdatedData { get; set; }
         public int UserId { get; set; }
-        public int CustId { get; set; }
+    
         [ForeignKey("UserId")]
         public User ?user { get; set; }
-        [ForeignKey("CustId")]
-        public Customer ?customer { get; set; }
+        public bool ISDeleted { get; set; } = false;
+
         public virtual ICollection<Transaction> ?SendTransaction { get; set; }
         public virtual ICollection<Transaction> ?ReceiveTransaction { get; set; }
 

@@ -10,4 +10,9 @@
     <ProjectReference Include="..\Domainlayer.BankSystem\Domainlayer.BankSystem.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
+  </ItemGroup>
+
 </Project>

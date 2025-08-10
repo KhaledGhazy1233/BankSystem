@@ -11,6 +11,7 @@ namespace Domainlayer.BankSystem.Entites
         public int Id { get; set; }
         public string? Name { get; set; }
 
+        public bool ISDeleted { get; set; } = false;
         public virtual ICollection<AuditLog> ?AuditLogs { get; set; }
     }
 }

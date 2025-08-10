@@ -11,8 +11,9 @@ namespace Domainlayer.BankSystem.Entites
         public int Id { get; set; }
         public int FromAccountId { get; set; }
         public int ToAccountId { get; set; }
-        public BankAccount ?ToAccount { get; set; }
+        public  BankAccount ?ToAccount { get; set; }
         public BankAccount ?FromAccount { get; set; }
+        public bool ISDeleted { get; set; } = false;
     }
 
 }

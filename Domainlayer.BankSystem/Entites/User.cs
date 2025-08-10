@@ -10,13 +10,15 @@ namespace Domainlayer.BankSystem.Entites
     public class User
     {
 
-        public int Id { get; set; }
 
-        public string Role { get; set; }
+        public bool ISDeleted { get; set; } = false;
+
         public DateTime CreatedAt{ get; set; }
-
-        public Customer Customer { get; set; }
+        public string NationallId { get; set; }
+        public string Nationality { get; set; }
         public virtual ICollection<BankAccount> ?BankAccounts { get; set; }
         public virtual ICollection<AuditLog> ?AuditLogs { get; set; }
+
+
     }
 }
