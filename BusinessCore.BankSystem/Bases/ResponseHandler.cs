@@ -15,7 +15,7 @@ namespace BusinessCore.BankSystem.Bases
         }
 
 
-        public Response<T> Sussess<T>(T data,object meta=null)
+        public Response<T> Success<T>(T data,object meta=null)
         {
             return new Response<T>()
             {
