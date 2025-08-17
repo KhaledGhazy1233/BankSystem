@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -7,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Domainlayer.BankSystem.Entites
 {
-    public class User
+    public class User : IdentityUser<int>
     {
 
-        public int Id { get; set; }
+    
         public bool ISDeleted { get; set; } = false;
 
         public DateTime CreatedAt{ get; set; }

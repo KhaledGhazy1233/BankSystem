@@ -34,6 +34,8 @@ namespace InfrastructureLayer.BankSystem.Data
 
         public DbSet<User> users { get; set; }
 
+       
+
 
     }
 }

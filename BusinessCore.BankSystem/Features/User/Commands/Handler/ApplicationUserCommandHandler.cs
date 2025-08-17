@@ -3,12 +3,12 @@ using BusinessCore.BankSystem.Features.User.Commands.Requests;
 using Domainlayer.BankSystem.Entites;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using ApplicationLayer.BankSystem.AbstractServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ApplicationLayer.BankSystem.AbstractServices;
 
 namespace BusinessCore.BankSystem.Features.User.Commands.Handler
 {

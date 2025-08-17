@@ -1,4 +1,5 @@
-﻿using Domainlayer.BankSystem.Entites;
+﻿using ApplicationLayer.BankSystem.ServiceBases;
+using Domainlayer.BankSystem.Entites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace ApplicationLayer.BankSystem.AbstractServices
 {
-    public interface IJwtTokenService
+    public interface ITransactionTypeService : IService<TransactionType>
     {
-        public Task<string> GenerateJWTToken(ApplicationUser user);
     }
 }

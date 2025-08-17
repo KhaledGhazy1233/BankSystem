@@ -11,3 +11,16 @@ D:\BankSystem\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.Ban
 D:\BankSystem\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\refint\Domainlayer.BankSystem.dll
 D:\BankSystem\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.pdb
 D:\BankSystem\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\ref\Domainlayer.BankSystem.dll
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\bin\Debug\net8.0\Domainlayer.BankSystem.deps.json
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\bin\Debug\net8.0\Domainlayer.BankSystem.dll
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\bin\Debug\net8.0\Domainlayer.BankSystem.pdb
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.csproj.AssemblyReference.cache
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.AssemblyInfoInputs.cache
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.AssemblyInfo.cs
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.csproj.CoreCompileInputs.cache
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.sourcelink.json
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.dll
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\refint\Domainlayer.BankSystem.dll
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\Domainlayer.BankSystem.pdb
+C:\Users\LOQ\Desktop\BankSystem\Domainlayer.BankSystem\obj\Debug\net8.0\ref\Domainlayer.BankSystem.dll
