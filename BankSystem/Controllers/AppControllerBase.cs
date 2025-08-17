@@ -5,7 +5,7 @@ using System.Net;
 
 namespace BankSystem.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     [ApiController]
     public class AppControllerBase : ControllerBase
     {

@@ -30,6 +30,7 @@ namespace Domainlayer.BankSystem.AppMetaData
 
             public const string GetUserById = Prefix + "/GetById" + SignleRoute;
 
+            public const string SignIn = Prefix + "/SignIn";
         }
 
 
