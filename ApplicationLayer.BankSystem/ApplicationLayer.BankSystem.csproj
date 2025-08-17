@@ -6,10 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Domainlayer.BankSystem\Domainlayer.BankSystem.csproj" />
-    <ProjectReference Include="..\InfrastructureLayer.BankSystem\InfrastructureLayer.BankSystem.csproj" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <Folder Include="AbstractServices\" />
