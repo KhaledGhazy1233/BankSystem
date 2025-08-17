@@ -1,4 +1,7 @@
-
+using System;
+using ApplicationLayer.BankSystem.AbstractServices;
+using ApplicationLayer.BankSystem.ImplementServices;
+using ApplicationLayer.BankSystem.ModuleDependences;
 using BusinessCore.BankSystem;
 using InfrastructureLayer.BankSystem.Data;
 using InfrastructureLayer.BankSystem.ModuleDependences;
@@ -26,7 +29,8 @@ namespace BankSystem
 
             #region ModelDependences
             builder.Services.AddServiceRegisteration(builder.Configuration)
-                             .AddCoreDependencies();
+                            .AddCoreDependencies()
+                            .AddServiceDependences(builder.Configuration);
             #endregion
 
          var app = builder.Build();

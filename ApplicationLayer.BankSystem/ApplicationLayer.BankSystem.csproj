@@ -9,10 +9,13 @@
 
 
   <ItemGroup>
-    <Folder Include="AbstractServices\" />
-    <Folder Include="ImplementServices\" />
-    <Folder Include="ModuleDependences\" />
     <Folder Include="BasesOfApplicationLayer\" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\InfrastructureLayer.BankSystem\InfrastructureLayer.BankSystem.csproj" />
   </ItemGroup>
 
 </Project>

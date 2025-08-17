@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Domainlayer.BankSystem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a451c2293a04ccf304ddddf0a3959bf2b560a6fb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e438acbbe9a8ce7ab07d5d76fc9d562b27ff5253")]
 [assembly: System.Reflection.AssemblyProductAttribute("Domainlayer.BankSystem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Domainlayer.BankSystem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

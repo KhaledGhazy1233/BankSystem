@@ -81,7 +81,20 @@ namespace BankSystem.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Fail Edit User");
+                return BadRequest("Fail changePassword User");
+            }
+        }
+        [HttpPost(Router.ApplicationUser.SignIn)]
+        public async Task<IActionResult> SignInAsync([FromBody] SignInCommand command)
+        {
+            try
+            {
+                var response = await _mediator.Send(command);
+                return NewResult(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Fail SignIn ");
             }
         }
     }

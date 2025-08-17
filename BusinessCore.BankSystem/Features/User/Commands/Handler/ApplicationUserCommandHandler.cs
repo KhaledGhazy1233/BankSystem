@@ -3,6 +3,7 @@ using BusinessCore.BankSystem.Features.User.Commands.Requests;
 using Domainlayer.BankSystem.Entites;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using ApplicationLayer.BankSystem.AbstractServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,18 +16,27 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
                                          IRequestHandler<AddUserCommand, Response<string>>,
                                          IRequestHandler<EditUserCommand, Response<string>>,
                                          IRequestHandler<DeleteUserCommand, Response<string>>,
-                                         IRequestHandler<ChangeUserPasswordCommand, Response<string>>
+                                         IRequestHandler<ChangeUserPasswordCommand, Response<string>>,
+                                         IRequestHandler<SignInCommand, Response<string>>
     {
                                          
         #region Fields
 
         private  UserManager<ApplicationUser> _UserManager { get; set; }
+        private  SignInManager<ApplicationUser> _SignInManager { get; set; }
+
+        private IJwtTokenService _jwttokenService { get; set; }
+
+
         #endregion
 
         #region Constructors
-        public ApplicationUserCommandHandler(UserManager<ApplicationUser> userManager)
+        public ApplicationUserCommandHandler(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+                                   IJwtTokenService jwttokenService)
         {
             _UserManager = userManager;
+            _SignInManager = signInManager;
+            _jwttokenService = jwttokenService;
         }
         #endregion
 
@@ -120,6 +130,26 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
              return Success<string>("PasswordChangedSuccessfully");
         }
 
-
+        public async Task<Response<string>> Handle(SignInCommand request, CancellationToken cancellationToken)
+        {
+            ///Logic
+            var username = await _UserManager.FindByNameAsync(request.UserName);
+            if (username == null)
+            {
+                return BadRequest<string>("UserName Not Found"); 
+            }
+            var userpassword = _SignInManager.CheckPasswordSignInAsync(username, request.Password,false);
+            if (!userpassword.IsCompletedSuccessfully)
+            { 
+               return BadRequest<string>("Password Not Correct");
+            }
+            var token = await _jwttokenService.GenerateJWTToken(username);
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest<string>("ErrorGeneratingToken");
+            }
+            return Success<string>(token, "SignInSuccessful");
+              
+        }
     }
 }
