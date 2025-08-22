@@ -8,24 +8,19 @@
     "net8.0": []
   },
   "packageFolders": {
-    "C:\\Users\\LOQ\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\skytop\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\LOQ\\Desktop\\BankSystem\\Domainlayer.BankSystem\\Domainlayer.BankSystem.csproj",
+      "projectUniqueName": "D:\\BankSystem\\BankSystem\\Domainlayer.BankSystem\\Domainlayer.BankSystem.csproj",
       "projectName": "Domainlayer.BankSystem",
-      "projectPath": "C:\\Users\\LOQ\\Desktop\\BankSystem\\Domainlayer.BankSystem\\Domainlayer.BankSystem.csproj",
-      "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\LOQ\\Desktop\\BankSystem\\Domainlayer.BankSystem\\obj\\",
+      "projectPath": "D:\\BankSystem\\BankSystem\\Domainlayer.BankSystem\\Domainlayer.BankSystem.csproj",
+      "packagesPath": "C:\\Users\\skytop\\.nuget\\packages\\",
+      "outputPath": "D:\\BankSystem\\BankSystem\\Domainlayer.BankSystem\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\skytop\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -50,9 +45,8 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "all"
-      },
-      "SdkAnalysisLevel": "9.0.100"
+        "auditMode": "direct"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -73,7 +67,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
