@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BasesOfApplicationLayer\**" />
+    <EmbeddedResource Remove="BasesOfApplicationLayer\**" />
+    <None Remove="BasesOfApplicationLayer\**" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.20" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.1.4" />
+	 <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.4" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\InfrastructureLayer.BankSystem\InfrastructureLayer.BankSystem.csproj" />
+  </ItemGroup>
+
+</Project>

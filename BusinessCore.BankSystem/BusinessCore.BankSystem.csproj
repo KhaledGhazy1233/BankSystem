@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Features\User\Commands\Response\**" />
+    <EmbeddedResource Remove="Features\User\Commands\Response\**" />
+    <None Remove="Features\User\Commands\Response\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationLayer.BankSystem\ApplicationLayer.BankSystem.csproj" />
+    <ProjectReference Include="..\Domainlayer.BankSystem\Domainlayer.BankSystem.csproj" />
+    <ProjectReference Include="..\InfrastructureLayer.BankSystem\InfrastructureLayer.BankSystem.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\Authorization\Commands\Responses\" />
+    <Folder Include="Features\Authorization\Queries\Responses\" />
+    <Folder Include="Mapping\ApplicationUser\Commands\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+    <PackageReference Include="MediatR" Version="12.1.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="8.0.19" />
+  </ItemGroup>
+
+</Project>
