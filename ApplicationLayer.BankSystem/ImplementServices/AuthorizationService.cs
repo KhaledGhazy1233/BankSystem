@@ -1,13 +1,16 @@
 ﻿using ApplicationLayer.BankSystem.AbstractServices;
 using Domainlayer.BankSystem.Entites;
+using Domainlayer.BankSystem.Helper;
 using Domainlayer.BankSystem.Requests;
 using Domainlayer.BankSystem.Results;
+using InfrastructureLayer.BankSystem.Data;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using static Domainlayer.BankSystem.Results.ManageUserRoleResult;
@@ -18,11 +21,13 @@ namespace ApplicationLayer.BankSystem.ImplementServices
     {
         public RoleManager<Role> _rolemanager { get; set; }
         public UserManager<ApplicationUser> _userManager { get; set; }//زي ال repositories عندي
+        public ApplicationDbContext _dbcontext { get; set; }
 
-        public AuthorizationService(RoleManager<Role> roleManager, UserManager<ApplicationUser> userManager)
+        public AuthorizationService(RoleManager<Role> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext dbcontext)
         {
             _rolemanager = roleManager;
             _userManager = userManager;
+            _dbcontext = dbcontext;
         }
 
 
@@ -166,7 +171,7 @@ namespace ApplicationLayer.BankSystem.ImplementServices
             //    };
             //    UserRolesList.Add(userRole);
             //}
-            var UserRoleList = allRoles.Select(role => new UserRole
+            var UserRoleList = allRoles.Select(role => new UserRole//للعرض
             {
                 Id = role.Id,
                 RoleName = role.Name,
@@ -180,24 +185,96 @@ namespace ApplicationLayer.BankSystem.ImplementServices
 
         public async Task<string> UpdateUserRoles(UpdateUserRolesRequest request)
         {
-           //GetUser
-           var user = await _userManager.FindByIdAsync(request.UserId.ToString());  
-           //OldRoles
-             var oldRoles = await _userManager.GetRolesAsync(user);
-              if(oldRoles == null)
-                return "NotFoundOldRoles";
-          var removeResult = await _userManager.RemoveFromRolesAsync(user, oldRoles);
-           //RemoveOldRoles
-          var selectedRoles = request.userRoles.Where(r => r.HasRole==true).Select(r => r.RoleName).ToList();
-           //AddNewRoles
-         var addResult = await _userManager.AddToRolesAsync(user, selectedRoles);
-           if(addResult.Succeeded)
+            var transact = await _dbcontext.Database.BeginTransactionAsync();
+            try
+            {
+                //GetUser
+                var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+                //OldRoles
+                var oldRoles = await _userManager.GetRolesAsync(user);
+                if (oldRoles == null)
+                    return "NotFoundOldRoles";
+                var removeResult = await _userManager.RemoveFromRolesAsync(user, oldRoles);
+                //RemoveOldRoles
+                var selectedRoles = request.userRoles.Where(r => r.HasRole == true).Select(r => r.RoleName).ToList();
+                //AddNewRoles
+                var addResult = await _userManager.AddToRolesAsync(user, selectedRoles);
+                if (!addResult.Succeeded)
+                    return "FailedaddResult";
+                await transact.RollbackAsync();
                 return "Successful";
-           else
-                return "Failed";
+            }
+            catch (Exception ex) 
+            {
+                await transact.RollbackAsync();
+                return "FailedToUpdateRoles";
+            }
               
         }
+        public async Task<ManageUserClaimResult> ManageUserClaim(ApplicationUser User)
+        { 
+            var response = new ManageUserClaimResult();
+            response.UserId = User.Id;
+            var ClaimList = new List<UserClaim>();
+            //GetUserClaims
+            var UserClaims = await _userManager.GetClaimsAsync(User);
+            //pagination
+            foreach (var claim in ClaimsStore.Claims)
+            {
+                var UserClaim = new UserClaim();
+                UserClaim.ClaimType = claim.Type;
+                //Checktype
+                if (UserClaims.Any(x => x.Type == claim.Type))
+                {
+                    UserClaim.ClaimValue = true;
+                }
+                else
+                {
+                    UserClaim.ClaimValue = false;
+                }
+              //fillList
+                ClaimList.Add(UserClaim);
+            }
+            //return
+            response.UserClaims = ClaimList;
+            return response;
+        
+        }
+        public async Task<string> UpdateUserClaim(ManageUserClaimResult request)
+        { 
+            var transact = await _dbcontext.Database.BeginTransactionAsync();
+            try
+            {
+                var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+                if (user == null)
+                    return "UserNotFound";
+                //GetOldClaims
+                var oldClaims = await _userManager.GetClaimsAsync(user);
+                //removeoldclaims
+                var removeResult = await _userManager.RemoveClaimsAsync(user, oldClaims);
 
+                if (!removeResult.Succeeded)
+                    return "FailedToRemoveOldClaims";
+                //AddNewClaims
+                var selectedClaims = request.UserClaims.Where(c => c.ClaimValue == true)
+                                             .Select(c => new Claim(c.ClaimType, c.ClaimType)).ToList();
+                var addResult = await _userManager.AddClaimsAsync(user, selectedClaims);
+                if (addResult.Succeeded)
+                {
+                    await transact.CommitAsync();
+                    return "Successful";
+                }
+                else
+                {
+                    return "FailedToAddNewClaims";
+                }
+            }
+            catch (Exception ex)
+            {
+                await transact.RollbackAsync();
+                return "FailedToAddNewClaims";
+            }
+        }
 
         #endregion
     }

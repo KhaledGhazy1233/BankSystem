@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domainlayer.BankSystem.AppMetaData
+﻿namespace Domainlayer.BankSystem.AppMetaData
 {
     public static class Router
     {
@@ -22,16 +16,16 @@ namespace Domainlayer.BankSystem.AppMetaData
 
             public const string Create = Prefix + "/Create";
 
-            public const string Edit = Prefix + "/Edit" ;
+            public const string Edit = Prefix + "/Edit";
 
             public const string Delete = Prefix + "/Delete" + SignleRoute;
 
-            public const string ChangePassword = Prefix + "/ChangePassword" ;
+            public const string ChangePassword = Prefix + "/ChangePassword";
 
             public const string GetUserById = Prefix + "/GetById" + SignleRoute;
 
             public const string SignIn = Prefix + "/SignIn";
-           
+
             public const string GetUserPaginatedList = Prefix + "/GetUserPaginatedList";
         }
         public static class AuthorizationService
@@ -43,18 +37,32 @@ namespace Domainlayer.BankSystem.AppMetaData
             public const string DeleteRole = Prefix + "/DeleteRole";
             public const string GetRoles = Prefix + "/GetRoles";
             public const string IsRoleExist = Prefix + "/IsRoleExist";
-            public const string GetRoleById = Prefix + "/GetRoleById"+ SignleRoute;
+            public const string GetRoleById = Prefix + "/GetRoleById" + SignleRoute;
             public const string AddRoleToUser = Prefix + "/AddRoleToUser";
             public const string EditRoleToUser = Prefix + "/EditRoleToUser";
             public const string DeleteRoleFromUser = Prefix + "/DeleteRoleFromUser";
             public const string ManageUserRoles = Prefix + "/ManageUserRoles";
             public const string UpdateUserRoles = Prefix + "/UpdateUserRoles";
+            public const string ManageUserClaims = Prefix + "/ManageUserClaims" + SignleRoute;
+            public const string UpdateUserClaims = Prefix + "/UpdateUserClaims";
         }
         public static class AuthenticationService
         {
             public const string Prefix = Rule + "AuthenticationService";
 
             public const string GenerateAccessToken = Prefix + "/GenerateAccessToken";
+        }
+
+        public static class BankAccount
+        {
+            public const string Prefix = Rule + "BankAccount";
+            public const string GetAll = Prefix + "/GetAll";
+            public const string GetById = Prefix + "/GetById" + SignleRoute;
+            public const string GetByUserId = Prefix + "/GetByUserId" + SignleRoute;
+            public const string GetByAccountNumber = Prefix + "/GetByAccountNumber/{accountNumber}";
+            public const string Create = Prefix + "/Create";
+            public const string UpdateAccountType = Prefix + "/UpdateAccountType";
+            public const string Delete = Prefix + "/Delete";
         }
     }
 }

@@ -162,5 +162,34 @@ namespace BankSystem.Controllers
                 return BadRequest("Error");
             }
         }
+
+        [HttpGet(Router.AuthorizationService.ManageUserClaims)]
+        public async Task<IActionResult> ManageUserClaims([FromRoute] int id)
+        {
+            var response = await _mediator.Send(new ManageUserClaimQuery() { UserId = id});
+            try
+            {
+                return NewResult(response);
+
+            }
+            catch
+            {
+                return BadRequest("Error");
+            }
+        }
+        [HttpPut(Router.AuthorizationService.UpdateUserClaims)]
+        public async Task<IActionResult> UpdateUserClaims([FromBody] UpdateUserCommand request)
+        {
+            var response = await _mediator.Send(request);
+            try
+            {
+                return NewResult(response);
+
+            }
+            catch
+            {
+                return BadRequest("Error");
+            }
+        }
     }
 }

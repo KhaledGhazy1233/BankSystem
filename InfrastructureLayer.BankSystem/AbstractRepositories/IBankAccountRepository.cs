@@ -1,14 +1,12 @@
 ﻿using Domainlayer.BankSystem.Entites;
 using InfrastructureLayer.BankSystem.InfrastructureBases;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InfrastructureLayer.BankSystem.AbstractRepositories
 {
     public interface IBankAccountRepository : IRepository<BankAccount>
     {
+        Task<BankAccount> GetByAccountNumberAsync(string accountNumber);
+        Task<IEnumerable<BankAccount>> GetAccountsByUserIdAsync(int userId);
+        Task<IEnumerable<BankAccount>> GetActiveAccountsAsync();
     }
 }

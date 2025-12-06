@@ -2,18 +2,37 @@
 using InfrastructureLayer.BankSystem.AbstractRepositories;
 using InfrastructureLayer.BankSystem.Data;
 using InfrastructureLayer.BankSystem.InfrastructureBases;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace InfrastructureLayer.BankSystem.ImplementRepositories
 {
-    public class BankAccountRepository : Repository<BankAccount>,IBankAccountRepository
+    public class BankAccountRepository : Repository<BankAccount>, IBankAccountRepository
     {
+        private DbSet<BankAccount> _BankAccounts { get; set; }
         public BankAccountRepository(ApplicationDbContext context) : base(context)
         {
+            _BankAccounts = context.Set<BankAccount>();
+        }
+
+        public async Task<BankAccount> GetByAccountNumberAsync(string accountNumber)
+        {
+            return await _BankAccounts.
+                         FirstOrDefaultAsync(x => x.AccountNumber == accountNumber && !x.ISDeleted);
+        }
+
+        public async Task<IEnumerable<BankAccount>> GetAccountsByUserIdAsync(int userId)
+        {
+            return await
+                    _BankAccounts.Where(x => x.UserId == userId && !x.ISDeleted)
+                    .Include(x => x.user)
+                    .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BankAccount>> GetActiveAccountsAsync()
+        {
+            return await
+                   _BankAccounts.Where(x => x.IsActive && !x.ISDeleted)
+                   .ToListAsync();
         }
     }
 }

@@ -1,15 +1,11 @@
 ﻿using InfrastructureLayer.BankSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace InfrastructureLayer.BankSystem.InfrastructureBases
 {
-    public class Repository<T> :IRepository<T> where T : class
+    public class Repository<T> : IRepository<T> where T : class
     {
         #region Fields
 
@@ -110,6 +106,72 @@ namespace InfrastructureLayer.BankSystem.InfrastructureBases
             _context.Set<T>().UpdateRange(entities);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await _context.Set<T>().ToListAsync();
+        }
+
+        public virtual void Remove(T entity)
+        {
+            // Soft Delete implementation
+            var property = entity.GetType().GetProperty("ISDeleted");
+            if (property != null && property.PropertyType == typeof(bool))
+            {
+                property.SetValue(entity, true);
+
+                var updatedProperty = entity.GetType().GetProperty("UpdatedData");
+                if (updatedProperty != null && updatedProperty.PropertyType == typeof(DateTime))
+                {
+                    updatedProperty.SetValue(entity, DateTime.UtcNow);
+                }
+
+                _context.Set<T>().Update(entity);
+            }
+            else
+            {
+                _context.Set<T>().Remove(entity);
+            }
+        }
+
+        public virtual void RemoveRange(IEnumerable<T> entities)
+        {
+            foreach (var entity in entities)
+            {
+                Remove(entity);
+            }
+        }
+
+        public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _context.Set<T>().AnyAsync(expression);
+        }
+
+        public virtual async Task<int> CountAsync(Expression<Func<T, bool>> expression = null)
+        {
+            if (expression == null)
+                return await _context.Set<T>().CountAsync();
+
+            return await _context.Set<T>().CountAsync(expression);
+        }
+
+        public virtual async Task<IEnumerable<T>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            return await _context.Set<T>()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+
+
+        public virtual async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+
+
 
 
         #endregion

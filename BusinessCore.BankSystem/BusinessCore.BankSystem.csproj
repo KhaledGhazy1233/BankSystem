@@ -21,14 +21,29 @@
   <ItemGroup>
     <Folder Include="Features\Authorization\Commands\Responses\" />
     <Folder Include="Features\Authorization\Queries\Responses\" />
+    <Folder Include="Features\BankAccount\Commands\Responses\" />
+    <Folder Include="Features\Transaction\Commands\Handler\" />
+    <Folder Include="Features\Transaction\Commands\Models\" />
+    <Folder Include="Features\Transaction\Commands\Responses\" />
+    <Folder Include="Features\Transaction\Queries\Handler\" />
+    <Folder Include="Features\Transaction\Queries\Models\" />
+    <Folder Include="Features\Transaction\Queries\Responses\" />
     <Folder Include="Mapping\ApplicationUser\Commands\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="12.1.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.1.0" />
     <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="8.0.19" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resourses\SharedResourses.ar.resx">
+      <Generator></Generator>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

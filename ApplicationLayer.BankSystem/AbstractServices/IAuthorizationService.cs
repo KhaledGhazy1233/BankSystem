@@ -22,6 +22,8 @@ namespace ApplicationLayer.BankSystem.AbstractServices
 
         public Task<ManageUserRoleResult> ManageUserRoles(int id);
         public Task<string> UpdateUserRoles(UpdateUserRolesRequest request);
+        public Task<ManageUserClaimResult> ManageUserClaim(ApplicationUser User);
+        public Task<string> UpdateUserClaim(ManageUserClaimResult request);
     }
 }
 

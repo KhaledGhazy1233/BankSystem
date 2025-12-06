@@ -1,12 +1,11 @@
 ﻿using BusinessCore.BankSystem.Features.User.Commands.Requests;
 using Domainlayer.BankSystem.AppMetaData;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankSystem.Controllers
 {
-    
+
     [ApiController]
     public class AuthenticationController : AppControllerBase
     {
@@ -34,7 +33,7 @@ namespace BankSystem.Controllers
             try
             {
                 var response = await _mediator.Send(command);
-                return Ok(new { Response =response});
+                return Ok(new { Response = response });
             }
             catch (Exception ex)
             {

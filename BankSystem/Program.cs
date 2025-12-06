@@ -1,14 +1,16 @@
-using System;
-using ApplicationLayer.BankSystem.AbstractServices;
-using ApplicationLayer.BankSystem.ImplementServices;
 using ApplicationLayer.BankSystem.ModuleDependences;
 using BusinessCore.BankSystem;
+using BusinessCore.BankSystem.MiddleWare;
 using Domainlayer.BankSystem.Entites;
 using InfrastructureLayer.BankSystem.Data;
 using InfrastructureLayer.BankSystem.ModuleDependences;
 using InfrastructureLayer.BankSystem.Seeder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Serilog;
+using System.Globalization;
 
 namespace BankSystem
 {
@@ -24,7 +26,7 @@ namespace BankSystem
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-           
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DbContext")));
 
@@ -37,13 +39,34 @@ namespace BankSystem
                             .AddInfrastructureDependencies();
             #endregion
 
-         var app = builder.Build();
+            #region Localization
+            builder.Services.Configure<RequestLocalizationOptions>(options =>
+            {
+                List<CultureInfo> supportedCultures = new List<CultureInfo>
+            {
+            new CultureInfo("en-US"),
+            new CultureInfo("de-DE"),
+            new CultureInfo("fr-FR"),
+            new CultureInfo("ar-EG")
+            };
+
+                options.DefaultRequestCulture = new RequestCulture("en-US");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
+
+            #endregion
+
+
+
+
+            var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
                 await RoleSeeder.SeedAsync(roleManager);
-                 await UserSeeder.SeedAsync(userManager);
+                await UserSeeder.SeedAsync(userManager);
             }
 
 
@@ -54,6 +77,41 @@ namespace BankSystem
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            #region Localization Middleware
+            var options = app.Services.GetService<IOptions<RequestLocalizationOptions>>();
+            app.UseRequestLocalization(options.Value);
+            #endregion
+
+            #region Serilog Configuration
+            Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+           .Enrich.FromLogContext()
+
+             .WriteTo.Console(
+             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.File(
+             path: "logs/log-.txt",
+             rollingInterval: RollingInterval.Day,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+
+              .CreateLogger();
+
+            builder.Services.AddSerilog();
+            #endregion
+
+
+
+
+
+
+            app.UseMiddleware<ErrorHandlerMiddleware>();
+
+
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
 

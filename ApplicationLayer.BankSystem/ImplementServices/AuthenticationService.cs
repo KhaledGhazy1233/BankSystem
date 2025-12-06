@@ -1,24 +1,15 @@
 ﻿using ApplicationLayer.BankSystem.AbstractServices;
-using Azure.Core;
 using Domainlayer.BankSystem.Entites;
-using Domainlayer.BankSystem.Helper;
 using Domainlayer.BankSystem.Results;
 using InfrastructureLayer.BankSystem.AbstractRepositories;
 using InfrastructureLayer.BankSystem.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.CodeDom.Compiler;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ApplicationLayer.BankSystem.ImplementServices
 {
@@ -122,12 +113,11 @@ namespace ApplicationLayer.BankSystem.ImplementServices
         public async Task<List<Claim>> GetClaims(ApplicationUser user)
         {
             var roles = await _usermanager.GetRolesAsync(user);
-
+            var allUserClaims = await _usermanager.GetClaimsAsync(user);
             var claims = new List<Claim>
              {
-
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) ,
                 new Claim(ClaimTypes.Name,user.UserName),
-                new Claim(ClaimTypes.NameIdentifier,user.UserName),
                 new Claim(ClaimTypes.Email,user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
 
@@ -136,7 +126,7 @@ namespace ApplicationLayer.BankSystem.ImplementServices
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             };
-
+            claims.AddRange(allUserClaims);
             //new Claim(nameof(UserClaimModel.UserName), user.UserName),
             //new Claim(nameof(UserClaimModel.Email), user.Email),
             //new Claim(nameof(UserClaimModel.PhoneNumber), user.PhoneNumber),
@@ -214,7 +204,7 @@ namespace ApplicationLayer.BankSystem.ImplementServices
             }
 
             // استخراج UserId من الـ Claims
-            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == nameof(UserClaimModel.Id))?.Value;
+            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return ("UserIdNotFoundInToken", null);

@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Collections.Concurrent;
 using System.Text;
 
@@ -30,6 +29,7 @@ namespace ApplicationLayer.BankSystem.ModuleDependences
             services.AddTransient<IFormFileService, FormFileService>();
             services.AddTransient<IAddUserImageService, AddUserImageService>();
             services.AddTransient<IAuthorizationService, AuthorizationService>();
+            services.AddScoped<IBankAccountService, BankAccountService>();
             services.AddSingleton(new ConcurrentDictionary<string, RefreshToken>());
             // Add Authentication with JWT
             services.AddAuthentication(x =>
@@ -87,6 +87,23 @@ namespace ApplicationLayer.BankSystem.ModuleDependences
                     }
                 });
             });
+
+            services.AddAuthorization(option =>
+            {
+                option.AddPolicy("CreateStudent", policy =>
+                {
+                    policy.RequireClaim("Create Student", "True");
+                });
+                option.AddPolicy("DeleteStudent", policy =>
+                {
+                    policy.RequireClaim("Delete Student", "True");
+                });
+                option.AddPolicy("EditStudent", policy =>
+                {
+                    policy.RequireClaim("Edit Student", "True");
+                });
+            });
+
 
             return services;
         }
