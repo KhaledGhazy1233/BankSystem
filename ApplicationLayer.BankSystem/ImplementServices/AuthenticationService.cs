@@ -1,165 +1,172 @@
 ﻿using ApplicationLayer.BankSystem.AbstractServices;
 using Domainlayer.BankSystem.Entites;
+using Domainlayer.BankSystem.Enums;
 using Domainlayer.BankSystem.Results;
 using InfrastructureLayer.BankSystem.AbstractRepositories;
 using InfrastructureLayer.BankSystem.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
+
 namespace ApplicationLayer.BankSystem.ImplementServices
 {
     public class AuthenticationService : IAuthenticationService
-
     {
-
-        #region Fields
-        private JwtSetting _jwtSetting;
-        private readonly UserManager<ApplicationUser> _usermanager;
+        private readonly JwtSetting _jwtSetting;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly ILogger<AuthenticationService> _logger;
 
-        #endregion
-
-        #region Constructors
-        public AuthenticationService(JwtSetting jwtSetting, UserManager<ApplicationUser> usermanager, IRefreshTokenRepository refreshTokenRepository)
+        public AuthenticationService(
+            JwtSetting jwtSetting,
+            UserManager<ApplicationUser> userManager,
+            IRefreshTokenRepository refreshTokenRepository,
+            ILogger<AuthenticationService> logger)
         {
             _jwtSetting = jwtSetting;
-
-            _usermanager = usermanager;
+            _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
+            _logger = logger;
         }
 
-        #endregion
-
-        #region HandlerMethods
+        // ------------------------- JWT + Refresh Token -------------------------
 
         public async Task<JwtAuthResult> GetJWTToken(ApplicationUser user)
         {
-
-
-            var refreshToken = GetRefreshToken(user.UserName);
-
-
             var (jwtToken, accessToken) = await GenerateJwtToken(user);
+            var (refreshPlain, expiresAt) = GenerateRefreshTokenPlain();
+            var refreshHash = ComputeSha256Hash(refreshPlain);
 
             var userRefreshToken = new UserRefreshToken
             {
-                AddedTime = DateTime.Now,
-                ExpiryDate = DateTime.Now.AddDays(-100),
-                IsUsed = true,
+                AddedTime = DateTime.UtcNow,
+                ExpiryDate = expiresAt,
+                IsUsed = false,
                 IsRevoked = false,
-                JwtId = jwtToken.Id,
-                RefreshToken = refreshToken.TokenString,
-                Token = accessToken,
+                JwtId = jwtToken.Id, // ✅ JWT ID for binding
+                RefreshTokenHash = refreshHash, // ✅ Only store hash
                 UserId = user.Id
+                // ✅ NO Token = accessToken (security best practice)
             };
+
             await _refreshTokenRepository.AddAsync(userRefreshToken);
+            await _refreshTokenRepository.SaveChangesAsync();
 
-
-            var ResultResponse = new JwtAuthResult
+            return new JwtAuthResult
             {
                 AccessToken = accessToken,
-                refreshToken = refreshToken
+                refreshToken = new RefreshToken
+                {
+                    TokenString = refreshPlain, // ✅ Return plain to client
+                    ExpireAt = expiresAt,
+                    UserName = user.UserName
+                }
             };
-
-            return ResultResponse;
-        }
-
-        private async Task<(JwtSecurityToken, string)> GenerateJwtToken(ApplicationUser user)
-        {
-            var allclaims = await GetClaims(user);
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSetting.Secret));
-            var jwtToken = new JwtSecurityToken(
-              issuer: _jwtSetting.Issuer,
-              audience: _jwtSetting.Audience,
-              claims: allclaims,
-              expires: DateTime.Now.AddDays(_jwtSetting.AccessTokenExpireDate),
-              signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-            var refreshToken = GetRefreshToken(user.UserName);//flag-->
-
-            return (jwtToken, accessToken);
         }
 
 
+        // ----------- Generate New Access Token Using Refresh Token -----------
 
-
-        private string GenerateRefershToken()
+        public async Task<JwtAuthResult> GenerateAccessTokenFromRefreshToken(
+            ApplicationUser user,
+            JwtSecurityToken oldJwtToken,
+            DateTime? expireDate,
+            string refreshTokenPlain)
         {
-            var randomNumber = new byte[32];
-            var randomNumberGenerator = RandomNumberGenerator.Create();
-            randomNumberGenerator.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
+            // ✅ Step 1: Hash incoming refresh token
+            var refreshHash = ComputeSha256Hash(refreshTokenPlain);
 
-        }
+            // ✅ Step 2: Find stored entry by hash + user (with tracking for update)
+            var stored = await _refreshTokenRepository.GetTableAsTracking()
+                .FirstOrDefaultAsync(x => x.RefreshTokenHash == refreshHash && x.UserId == user.Id);
 
-        private RefreshToken GetRefreshToken(string username)
-        {
-
-            return new RefreshToken
+            if (stored == null)
             {
-                ExpireAt = DateTime.Now.AddDays(_jwtSetting.RefreshTokenExpireDate),
-                TokenString = GenerateRefershToken(),//receive string
-                UserName = username
-            };
+                _logger.LogWarning("Refresh token not found for user {UserId}", user.Id);
+                throw new SecurityTokenException("Refresh token not found");
+            }
 
-
-        }
-
-        public async Task<List<Claim>> GetClaims(ApplicationUser user)
-        {
-            var roles = await _usermanager.GetRolesAsync(user);
-            var allUserClaims = await _usermanager.GetClaimsAsync(user);
-            var claims = new List<Claim>
-             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) ,
-                new Claim(ClaimTypes.Name,user.UserName),
-                new Claim(ClaimTypes.Email,user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-
-            };
-            foreach (var role in roles)
+            // ✅ Step 3: Validate not used/revoked
+            if (stored.IsUsed || stored.IsRevoked)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                await RevokeAndLog(stored, "reused_or_revoked_attempt");
+                throw new SecurityTokenException("Refresh token already used or revoked");
+            }
+
+            // ✅ Step 4: Validate not expired
+            if (stored.ExpiryDate < DateTime.UtcNow)
+            {
+                stored.IsRevoked = true;
+                stored.IsUsed = true;
+                await _refreshTokenRepository.UpdateAsync(stored);
+                await _refreshTokenRepository.SaveChangesAsync();
+                throw new SecurityTokenExpiredException("Refresh token expired");
+            }
+
+            // ✅ Step 5: CRITICAL - Validate JTI binding (prevents token substitution)
+            if (!string.Equals(stored.JwtId, oldJwtToken.Id, StringComparison.Ordinal))
+            {
+                await RevokeAndLog(stored, "jti_mismatch");
+                throw new SecurityTokenException("Refresh token does not match access token JTI");
+            }
+
+            // ✅ Step 6: Rotate - mark old as used+revoked
+            stored.IsUsed = true;
+            stored.IsRevoked = true;
+            await _refreshTokenRepository.UpdateAsync(stored);
+
+            // ✅ Step 7: Issue NEW access + refresh tokens
+            var (newJwt, newAccess) = await GenerateJwtToken(user);
+            var (newRefreshPlain, newExpiresAt) = GenerateRefreshTokenPlain();
+            var newHash = ComputeSha256Hash(newRefreshPlain);
+
+            var newEntity = new UserRefreshToken
+            {
+                AddedTime = DateTime.UtcNow,
+                ExpiryDate = newExpiresAt,
+                IsUsed = false,
+                IsRevoked = false,
+                JwtId = newJwt.Id,
+                RefreshTokenHash = newHash,
+                UserId = user.Id
             };
-            claims.AddRange(allUserClaims);
-            //new Claim(nameof(UserClaimModel.UserName), user.UserName),
-            //new Claim(nameof(UserClaimModel.Email), user.Email),
-            //new Claim(nameof(UserClaimModel.PhoneNumber), user.PhoneNumber),
-            //new Claim(nameof(UserClaimModel.Role), user.PhoneNumber),
 
+            await _refreshTokenRepository.AddAsync(newEntity);
+            await _refreshTokenRepository.SaveChangesAsync();
 
-            return claims;
+            return new JwtAuthResult
+            {
+                AccessToken = newAccess,
+                refreshToken = new RefreshToken
+                {
+                    TokenString = newRefreshPlain,
+                    ExpireAt = newExpiresAt,
+                    UserName = user.UserName
+                }
+            };
         }
-        public async Task<JwtAuthResult> GenerateAccessTokenFromRefreshToken(ApplicationUser user, JwtSecurityToken jwttoken, DateTime? expiredate, string RefreshToken)
-        {
-            var (jwtSecurityToken, newaccesstoken) = await GenerateJwtToken(user);
-            var response = new JwtAuthResult();
-            response.AccessToken = newaccesstoken;
 
-            var refreshtokenresult = new RefreshToken();
-            refreshtokenresult.ExpireAt = (DateTime)expiredate;
-            refreshtokenresult.TokenString = RefreshToken;
-            refreshtokenresult.UserName = jwttoken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
-            response.refreshToken = refreshtokenresult;
-            return response;
-        }
+        // ------------------------- Read JWT Without Validation -------------------------
+
         public JwtSecurityToken ReadJwtToken(string accessToken)
         {
-            if (string.IsNullOrEmpty(accessToken))
-            {
+            if (string.IsNullOrWhiteSpace(accessToken))
                 throw new ArgumentNullException(nameof(accessToken));
-            }
-            var handler = new JwtSecurityTokenHandler();
-            var response = handler.ReadJwtToken(accessToken);
-            return response;
+
+            return new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
         }
-        public async Task<string> ValidateToken(string accesstoken)
+
+
+        // ------------------------- Validate Token -------------------------
+
+        public async Task<string> ValidateToken(string accessToken)
         {
             var handler = new JwtSecurityTokenHandler();
             var parameters = new TokenValidationParameters
@@ -167,77 +174,241 @@ namespace ApplicationLayer.BankSystem.ImplementServices
                 ValidateIssuer = _jwtSetting.ValidateIssuer,
                 ValidIssuers = new[] { _jwtSetting.Issuer },
                 ValidateIssuerSigningKey = _jwtSetting.ValidateIssuerSigningKey,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtSetting.Secret)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSetting.Secret)),
                 ValidAudience = _jwtSetting.Audience,
                 ValidateAudience = _jwtSetting.ValidateAudience,
                 ValidateLifetime = _jwtSetting.ValidateLifeTime,
+                ClockSkew = TimeSpan.Zero
             };
 
             try
             {
-                var validator = handler.ValidateToken(accesstoken, parameters, out SecurityToken validatedToken);
-                if (validator == null)
-                {
-                    return "InvalidToken";
-                }
-                return "NotExpired";
+                var validator = handler.ValidateToken(accessToken, parameters, out SecurityToken validatedToken);
+                return validator == null ? "InvalidToken" : "NotExpired";
             }
             catch (Exception ex)
             {
                 return ex.Message;
             }
-
         }
 
-        public async Task<(string, DateTime?)> ValidateTokenDetails(JwtSecurityToken jwtToken, string accessToken, string refreshToken)
+
+        // -------------------- Validate Token Details (Used in Handler) --------------------
+
+        //public async Task<(string, DateTime?)> ValidateTokenDetails(
+        //    JwtSecurityToken jwtToken,
+        //    string accessToken,
+        //    string refreshTokenPlain)
+        //{
+        //    // Check 1: Validate Algorithm
+        //    if (jwtToken == null ||
+        //        !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        return ("InvalidAlgorithm", null);
+        //    }
+
+        //    // Check 2: Ensure Access Token is expired
+        //    if (jwtToken.ValidTo > DateTime.UtcNow)
+        //    {
+        //        return ("AccessTokenStillValid", jwtToken.ValidTo);
+        //    }
+
+        //    // Check 3: Extract and validate UserId
+        //    var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        //    if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedUserId))
+        //    {
+        //        return ("InvalidUserId", null);
+        //    }
+
+        //    // ✅ Check 4: Hash and find refresh token (NO need to compare accessToken)
+        //    var refreshTokenHash = ComputeSha256Hash(refreshTokenPlain);
+
+        //    var userRefreshToken = await _refreshTokenRepository.GetTableNoTracking()
+        //        .FirstOrDefaultAsync(x =>
+        //            x.RefreshTokenHash == refreshTokenHash &&
+        //            x.UserId == parsedUserId);
+
+        //    if (userRefreshToken == null)
+        //        return ("TokenNotFound", null);
+
+        //    // Check 5: Ensure token hasn't been used or revoked
+        //    if (userRefreshToken.IsUsed || userRefreshToken.IsRevoked)
+        //        return ("RefreshTokenUsedOrRevoked", null);
+
+        //    // Check 6: Ensure refresh token hasn't expired
+        //    if (userRefreshToken.ExpiryDate < DateTime.UtcNow)
+        //        return ("RefreshTokenExpired", null);
+
+        //    // ✅ Check 7: Validate JTI binding
+        //    if (!string.Equals(userRefreshToken.JwtId, jwtToken.Id, StringComparison.Ordinal))
+        //        return ("JwtIdMismatch", null);
+
+        //    return (userId, userRefreshToken.ExpiryDate);
+        //}
+
+
+        public async Task<(TokenValidationStatus status, string UserId, DateTime? ExpireDate)> ValidateTokenDetails(
+            JwtSecurityToken jwtToken,
+            string accessToken,
+            string refreshTokenPlain)
         {
+            // Check 1: Validate Algorithm
             if (jwtToken == null ||
                 !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
             {
-                return ("InvalidAlgorithm", null);
+                return (TokenValidationStatus.InvalidAlgorithm, string.Empty, null);
             }
 
-            // AccessToken لسه شغال، مش محتاج تعمل Refresh
+            // Check 2: Ensure Access Token is expired
             if (jwtToken.ValidTo > DateTime.UtcNow)
             {
-                return ("AccessTokenStillValid", jwtToken.ValidTo);
+                return (TokenValidationStatus.AccessTokenStillValid, string.Empty, jwtToken.ValidTo);
             }
 
-            // استخراج UserId من الـ Claims
+            // Check 3: Extract and validate UserId
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return ("UserIdNotFoundInToken", null);
-            }
-
-            // البحث عن RefreshToken في الداتا
             if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedUserId))
             {
-                return ("InvalidUserId", null);
+                return (TokenValidationStatus.InvalidUserId, string.Empty, null);
             }
+
+            // Check 4: Hash and find refresh token
+            var refreshTokenHash = ComputeSha256Hash(refreshTokenPlain);
 
             var userRefreshToken = await _refreshTokenRepository.GetTableNoTracking()
                 .FirstOrDefaultAsync(x =>
-                    x.Token == accessToken &&
-                    x.RefreshToken == refreshToken &&
+                    x.RefreshTokenHash == refreshTokenHash &&
                     x.UserId == parsedUserId);
 
             if (userRefreshToken == null)
-                return ("TokenNotFound", null);
+                return (TokenValidationStatus.TokenNotFound, string.Empty, null);
 
-            // التحقق من انتهاء صلاحية RefreshToken
+            // Check 5: Ensure token hasn't been used or revoked
+            if (userRefreshToken.IsUsed || userRefreshToken.IsRevoked)
+                return (TokenValidationStatus.RefreshTokenUsedOrRevoked, string.Empty, null);
+
+            // Check 6: Ensure refresh token hasn't expired
             if (userRefreshToken.ExpiryDate < DateTime.UtcNow)
-            {
-                userRefreshToken.IsRevoked = true;
-                userRefreshToken.IsUsed = false;
-                await _refreshTokenRepository.UpdateAsync(userRefreshToken);
-                return ("RefreshTokenExpired", null);
-            }
+                return (TokenValidationStatus.RefreshTokenExpired, string.Empty, null);
 
-            return (userId.ToString(), userRefreshToken.ExpiryDate);
+            // Check 7: Validate JTI binding
+            if (!string.Equals(userRefreshToken.JwtId, jwtToken.Id, StringComparison.Ordinal))
+                return (TokenValidationStatus.JwtIdMismatch, string.Empty, null);
+
+            return (TokenValidationStatus.Success, userId, userRefreshToken.ExpiryDate);
         }
 
-        #endregion
+        // ------------------------- Generate JWT -------------------------
 
+        private async Task<(JwtSecurityToken, string)> GenerateJwtToken(ApplicationUser user)
+        {
+            var claims = await GetClaims(user);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSetting.Secret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // ✅ Generate unique JTI
+            var jti = Guid.NewGuid().ToString();
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, jti));
+
+            var jwtToken = new JwtSecurityToken(
+                issuer: _jwtSetting.Issuer,
+                audience: _jwtSetting.Audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_jwtSetting.AccessTokenExpireMinutes), // ✅ Minutes, not days!
+                signingCredentials: creds
+            );
+
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+            return (jwtToken, accessToken);
+        }
+
+
+        // ------------------------- Claims Builder -------------------------
+
+        private async Task<List<Claim>> GetClaims(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var userClaims = await _userManager.GetClaimsAsync(user);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+                // ✅ JTI added in GenerateJwtToken
+            };
+
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(userClaims);
+
+            return claims;
+        }
+
+
+        // ------------------------- Refresh Token Generator -------------------------
+
+        private (string TokenString, DateTime ExpiresAt) GenerateRefreshTokenPlain()
+        {
+            var randomNumber = new byte[64]; // ✅ Large entropy
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+
+            var token = Convert.ToBase64String(randomNumber);
+            var expires = DateTime.UtcNow.AddDays(_jwtSetting.RefreshTokenExpireDays);
+
+            return (token, expires);
+        }
+
+
+        // ------------------------- Hashing Helper -------------------------
+
+        private static string ComputeSha256Hash(string raw)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(raw);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+
+
+        // ------------------------- Revoke & Log -------------------------
+
+        private async Task RevokeAndLog(UserRefreshToken token, string reason)
+        {
+            token.IsRevoked = true;
+            token.IsUsed = true;
+            await _refreshTokenRepository.UpdateAsync(token);
+            await _refreshTokenRepository.SaveChangesAsync();
+
+            _logger.LogWarning(
+                "Revoked refresh token Id={Id} for user {UserId}. Reason: {Reason}",
+                token.Id, token.UserId, reason);
+        }
+
+        public async Task<bool> RevokeRefreshTokenAsync(int userId, string refreshToken)
+        {
+            var hash = ComputeSha256Hash(refreshToken);
+            var token = await _refreshTokenRepository.GetTableAsTracking()
+                .FirstOrDefaultAsync(x => x.RefreshTokenHash == hash && x.UserId == userId);
+
+            if (token == null || token.IsRevoked) return false;
+
+            token.IsRevoked = true;
+            token.IsUsed = true;
+            await _refreshTokenRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<int> RevokeAllUserTokensAsync(int userId)
+        {
+            var tokens = await _refreshTokenRepository.GetTableAsTracking()
+                .Where(x => x.UserId == userId && !x.IsRevoked)
+                .ToListAsync();
+
+            foreach (var t in tokens) t.IsRevoked = true;
+
+            await _refreshTokenRepository.SaveChangesAsync();
+            return tokens.Count;
+        }
     }
 }

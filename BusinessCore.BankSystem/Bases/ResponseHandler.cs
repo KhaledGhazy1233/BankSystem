@@ -1,91 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace BusinessCore.BankSystem.Bases
 {
+    /// <summary>
+    /// Generic Response wrapper with Static Factory Methods pattern
+    /// Provides type-safe, consistent response handling across the application
+    /// </summary>
+
+    /// <summary>
+    /// Response Handler - provides backward compatibility with old code
+    /// Can be used alongside the new static factory methods
+    /// </summary>
     public class ResponseHandler
     {
+        public ResponseHandler() { }
 
-        public ResponseHandler()
+        public Response<T> Success<T>(T data, object meta = null)
         {
-
-        }
-
-
-        public Response<T> Success<T>(T data,object meta=null)
-        {
-            return new Response<T>()
-            {
-                Data = data,
-                Meta = meta,
-                Succeeded = true,
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Message = "Successful Operation"
-
-
-            };
+            return Response<T>.Success(data, "Successful Operation", meta);
         }
 
         public Response<T> Deleted<T>()
         {
-            return new Response<T>()
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Succeeded = true,
-                Message = "Deleted Successfully"
-            };
-        }
-        public Response<T> Unauthorized<T>(string Message = null)
-        {
-            return new Response<T>()
-            {
-                StatusCode = System.Net.HttpStatusCode.Unauthorized,
-                Succeeded = true,
-                Message = "UnAuthorized"
-            };
-        }
-        public Response<T> BadRequest<T>(string Message = null)
-        {
-            return new Response<T>()
-            {
-                StatusCode = System.Net.HttpStatusCode.BadRequest,
-                Succeeded = false,
-                Message = Message == null ? "Bad Request" : Message
-            };
+            return Response<T>.Deleted();
         }
 
-        public Response<T> UnprocessableEntity<T>(string Message = null)
+        public Response<T> Unauthorized<T>(string message = null)
         {
-            return new Response<T>()
-            {
-                StatusCode = System.Net.HttpStatusCode.UnprocessableEntity,
-                Succeeded = false,
-                Message = Message == null ? "Unprocessable Entity" : Message
-            };
+            return Response<T>.Unauthorized(message ?? "UnAuthorized");
         }
+
+        public Response<T> BadRequest<T>(string message = null)
+        {
+            return Response<T>.BadRequest(message ?? "Bad Request");
+        }
+
+        public Response<T> UnprocessableEntity<T>(string message = null)
+        {
+            return Response<T>.Failure(message ?? "Unprocessable Entity", HttpStatusCode.UnprocessableEntity);
+        }
+
         public Response<T> NotFound<T>(string message = null)
         {
-            return new Response<T>()
-            {
-                StatusCode = System.Net.HttpStatusCode.NotFound,
-                Succeeded = false,
-                Message = message == null ? "Not Found" : message
-            };
+            return Response<T>.NotFound(message ?? "Not Found");
         }
 
-        public Response<T> Created<T>(T entity, object Meta = null)
+        public Response<T> Created<T>(T entity, object meta = null)
         {
-            return new Response<T>()
-            {
-                Data = entity,
-                StatusCode = System.Net.HttpStatusCode.Created,
-                Succeeded = true,
-                Message = "Created",
-                Meta = Meta
-            };
+            return Response<T>.Created(entity, "Created", meta);
         }
     }
 }

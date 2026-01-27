@@ -1,7 +1,10 @@
 ﻿using BusinessCore.BankSystem.Features.User.Commands.Requests;
 using Domainlayer.BankSystem.AppMetaData;
+using Domainlayer.BankSystem.Requests;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BankSystem.Controllers
 {
@@ -40,7 +43,31 @@ namespace BankSystem.Controllers
                 return BadRequest("Fail SignIn ");
             }
         }
+        [HttpPost(Router.AuthenticationService.Logout)]
+        [Authorize]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var response = await _mediator.Send(new LogoutCommand
+            {
+                UserId = userId,
+                RefreshToken = request.Refreshtoken
+            });
+            return NewResult(response);
+        }
 
+        [HttpPost(Router.AuthenticationService.LogoutAll)]
+        [Authorize]
+        public async Task<IActionResult> LogoutAll()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var response = await _mediator.Send(new LogoutCommand
+            {
+                UserId = userId,
+                RevokeAllTokens = true
+            });
+            return NewResult(response);
+        }
 
 
     }

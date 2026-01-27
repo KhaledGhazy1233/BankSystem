@@ -51,6 +51,8 @@
             public const string Prefix = Rule + "AuthenticationService";
 
             public const string GenerateAccessToken = Prefix + "/GenerateAccessToken";
+            public const string Logout = Prefix + "/Logout";
+            public const string LogoutAll = Prefix + "/LogoutAll";
         }
 
         public static class BankAccount

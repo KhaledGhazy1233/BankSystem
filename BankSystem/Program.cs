@@ -98,7 +98,7 @@ namespace BankSystem
 
               .CreateLogger();
 
-            builder.Services.AddSerilog();
+            //builder.Services.AddSerilog();
             #endregion
 
 

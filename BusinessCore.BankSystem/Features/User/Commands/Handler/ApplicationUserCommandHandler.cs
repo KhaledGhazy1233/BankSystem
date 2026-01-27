@@ -1,17 +1,11 @@
-﻿using BusinessCore.BankSystem.Bases;
+﻿using ApplicationLayer.BankSystem.AbstractServices;
+using BusinessCore.BankSystem.Bases;
 using BusinessCore.BankSystem.Features.User.Commands.Requests;
 using Domainlayer.BankSystem.Entites;
+using Domainlayer.BankSystem.Enums;
+using Domainlayer.BankSystem.Results;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using ApplicationLayer.BankSystem.AbstractServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ApplicationLayer.BankSystem.ImplementServices;
-using Domainlayer.BankSystem.Results;
-using System.Runtime.InteropServices;
 
 namespace BusinessCore.BankSystem.Features.User.Commands.Handler
 {
@@ -21,13 +15,14 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
                                          IRequestHandler<DeleteUserCommand, Response<string>>,
                                          IRequestHandler<ChangeUserPasswordCommand, Response<string>>,
                                          IRequestHandler<SignInCommand, Response<JwtAuthResult>>
-                                       , IRequestHandler<RefreshTokenCommand, Response<JwtAuthResult>>
+                                       , IRequestHandler<RefreshTokenCommand, Response<JwtAuthResult>>,
+                                        IRequestHandler<LogoutCommand, Response<string>>
     {
-                                         
+
         #region Fields
 
-        private  UserManager<ApplicationUser> _UserManager { get; set; }
-        private  SignInManager<ApplicationUser> _SignInManager { get; set; }
+        private UserManager<ApplicationUser> _UserManager { get; set; }
+        private SignInManager<ApplicationUser> _SignInManager { get; set; }
 
         private IAuthenticationService _jwttokenService { get; set; }
         private IAddUserImageService _addUserImageService { get; set; }
@@ -38,7 +33,7 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
 
         #region Constructors
         public ApplicationUserCommandHandler(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
-                                   IAuthenticationService jwttokenService, IAddUserImageService addUserImageService , IFormFileService formFileService)
+                                   IAuthenticationService jwttokenService, IAddUserImageService addUserImageService, IFormFileService formFileService)
         {
             _UserManager = userManager;
             _SignInManager = signInManager;
@@ -65,26 +60,26 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
                 return BadRequest<string>("UserNameIsExists");
             }
 
-         
+
 
             var user = new ApplicationUser
             {
-              
+
                 FullName = request.FullName,
                 UserName = request.UserName,
                 Email = request.Email,
                 Address = request.Address,
                 Country = request.Country,
                 PhoneNumber = request.PhoneNumber
-                
+
             };
 
             if (request.Image != null)
             {
                 var ImageUrl = await _formFileService.UploadImage("ApplicationUser", request.Image);
                 //var imageResult = await _addUserImageService.AddUserImage(user, request.Image);
-                if(ImageUrl !=null)
-                         user.Image = ImageUrl;
+                if (ImageUrl != null)
+                    user.Image = ImageUrl;
             }
 
 
@@ -104,13 +99,13 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
 
         public async Task<Response<string>> Handle(EditUserCommand request, CancellationToken cancellationToken)
         {
-   
+
             var olduser = _UserManager.FindByIdAsync(request.Id.ToString()).Result;
             if (olduser == null)
             {
                 return BadRequest<string>("UserNotFound");
             }
-            
+
             olduser.FullName = request.FullName;
             olduser.UserName = request.UserName;
             olduser.Email = request.Email;
@@ -121,14 +116,14 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
             if (result != null)
             {
                 return Success<string>(olduser.Id.ToString(), "UserUpdatedSuccessfully");
-              
+
             }
             return BadRequest<string>(result.Errors.FirstOrDefault()?.Description ?? "ErrorUpdatingUser");
         }
 
         public async Task<Response<string>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
-      
+
             var user = _UserManager.FindByIdAsync(request.Id.ToString());
             if (user == null)
             {
@@ -144,20 +139,20 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
 
         public async Task<Response<string>> Handle(ChangeUserPasswordCommand request, CancellationToken cancellationToken)
         {
-          
-                ///Do User exists Or Not
-                ///is exist change password
-             var user = _UserManager.FindByIdAsync(request.Id.ToString()).Result;
-             if(user == null)
-                {
-                    return BadRequest<string>("UserNotFound");
-                }
-             var result = await _UserManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
-             if (result != null)
-             {
+
+            ///Do User exists Or Not
+            ///is exist change password
+            var user = _UserManager.FindByIdAsync(request.Id.ToString()).Result;
+            if (user == null)
+            {
+                return BadRequest<string>("UserNotFound");
+            }
+            var result = await _UserManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            if (result != null)
+            {
                 return Success<string>("PasswordChangedSuccessfully");
-              
-             }
+
+            }
             return BadRequest<string>(result.Errors.FirstOrDefault()?.Description ?? "ErrorChangingPassword");
         }
 
@@ -183,34 +178,71 @@ namespace BusinessCore.BankSystem.Features.User.Commands.Handler
 
             return Success(tokenResult, "SignInSuccessful");
         }
-        
-        
+
+
         public async Task<Response<JwtAuthResult>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var jwttoken = _jwttokenService.ReadJwtToken(request.AccessToken);
-            if (jwttoken == null)
+            // Read JWT token
+            var jwtToken = _jwttokenService.ReadJwtToken(request.AccessToken);
+            if (jwtToken == null)
             {
                 return BadRequest<JwtAuthResult>("InvalidAccessToken");
             }
 
-            var (userId,ExpireDate) = await _jwttokenService.ValidateTokenDetails(jwttoken, request.AccessToken, request.RefreshToken);
-            switch (userId, ExpireDate)
-            {
-             case("AlgorithmIsWrong", null): return Unauthorized<JwtAuthResult>("AlgorithmIsWrong");
-            case ("TokenIsNotExpired", null): return Unauthorized<JwtAuthResult>("TokenIsNotExpired");
-            case ("RefreshTokenIsNotFound", null): return Unauthorized<JwtAuthResult>("RefreshTokenIsNotFound");
-            case ("RefreshTokenIsExpired", null): return Unauthorized<JwtAuthResult>("RefreshTokenIsExpired");
+            // Validate token details
+            var (result, userId, expireDate) = await _jwttokenService.ValidateTokenDetails(
+                jwtToken,
+                request.AccessToken,
+                request.RefreshToken);
 
+            // Check validation result
+            if (result != TokenValidationStatus.Success)
+            {
+                var errorMessage = result switch
+                {
+                    TokenValidationStatus.InvalidAlgorithm => "AlgorithmIsWrong",
+                    TokenValidationStatus.AccessTokenStillValid => "TokenIsNotExpired",
+                    TokenValidationStatus.InvalidUserId => "InvalidUserId",
+                    TokenValidationStatus.TokenNotFound => "RefreshTokenIsNotFound",
+                    TokenValidationStatus.RefreshTokenExpired => "RefreshTokenIsExpired",
+                    TokenValidationStatus.RefreshTokenUsedOrRevoked => "RefreshTokenUsedOrRevoked",
+                    TokenValidationStatus.JwtIdMismatch => "JwtIdMismatch",
+                    _ => "UnknownValidationError"
+                };
+
+                return Unauthorized<JwtAuthResult>(errorMessage);
             }
-            var (userid,expireDate) = (userId, ExpireDate);
-            
-            var user = await _UserManager.FindByIdAsync(userid);
+
+            // Find user
+            var user = await _UserManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return BadRequest<JwtAuthResult>("UserNotFound");
+                return NotFound<JwtAuthResult>("UserNotFound");
             }
-            var response = await  _jwttokenService.GenerateAccessTokenFromRefreshToken(user,jwttoken, expireDate , request.RefreshToken);
+
+            // Generate new tokens
+            var response = await _jwttokenService.GenerateAccessTokenFromRefreshToken(
+                user,
+                jwtToken,
+                expireDate,
+                request.RefreshToken);
+
             return Success(response);
+        }
+
+        public async Task<Response<string>> Handle(LogoutCommand request, CancellationToken cancellationToken)
+        {
+            var user = await _UserManager.FindByIdAsync(request.UserId.ToString());
+            if (user == null) return NotFound<string>("User not found");
+
+            if (request.RevokeAllTokens)
+            {
+                var countdevices = await _jwttokenService.RevokeAllUserTokensAsync(request.UserId);
+                return Success($"Logged out from all devices{countdevices}");
+            }
+
+            var revoked = await _jwttokenService.RevokeRefreshTokenAsync(request.UserId, request.RefreshToken);
+            return revoked ? Success("Logged out successfully") : BadRequest<string>("Invalid token");
         }
     }
 }
