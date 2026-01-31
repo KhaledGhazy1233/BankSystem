@@ -8,7 +8,8 @@ namespace Domainlayer.BankSystem.Entites
         public int Id { get; set; }
         public AccountTypeEnum AccountType { get; set; }
         public string AccountNumber { get; set; }
-        public float Balance { get; set; }
+
+        public decimal Balance { get; set; }
         public CurrencyEnum Currency { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedData { get; set; }
@@ -16,7 +17,7 @@ namespace Domainlayer.BankSystem.Entites
         public int UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public User? user { get; set; }
+        public virtual ApplicationUser? User { get; set; }
         public bool ISDeleted { get; set; } = false;
         [InverseProperty("ToAccount")]
         public virtual ICollection<Transaction>? SendTransaction { get; set; }

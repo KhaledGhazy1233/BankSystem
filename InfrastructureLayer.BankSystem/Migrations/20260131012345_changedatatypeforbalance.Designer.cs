@@ -4,6 +4,7 @@ using InfrastructureLayer.BankSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InfrastructureLayer.BankSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260131012345_changedatatypeforbalance")]
+    partial class changedatatypeforbalance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,7 +156,7 @@ namespace InfrastructureLayer.BankSystem.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("Domainlayer.BankSystem.Entites.BankAccount", b =>
@@ -198,7 +201,7 @@ namespace InfrastructureLayer.BankSystem.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BankAccounts", (string)null);
+                    b.ToTable("BankAccounts");
                 });
 
             modelBuilder.Entity("Domainlayer.BankSystem.Entites.Role", b =>
@@ -254,7 +257,7 @@ namespace InfrastructureLayer.BankSystem.Migrations
 
                     b.HasIndex("ToAccountId");
 
-                    b.ToTable("transactions", (string)null);
+                    b.ToTable("transactions");
                 });
 
             modelBuilder.Entity("Domainlayer.BankSystem.Entites.TransactionType", b =>
@@ -273,7 +276,7 @@ namespace InfrastructureLayer.BankSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("transactionTypes", (string)null);
+                    b.ToTable("transactionTypes");
                 });
 
             modelBuilder.Entity("Domainlayer.BankSystem.Entites.User", b =>
@@ -300,7 +303,7 @@ namespace InfrastructureLayer.BankSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("users");
                 });
 
             modelBuilder.Entity("Domainlayer.BankSystem.Entites.UserRefreshToken", b =>
@@ -339,7 +342,7 @@ namespace InfrastructureLayer.BankSystem.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRefreshToken", (string)null);
+                    b.ToTable("UserRefreshToken");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

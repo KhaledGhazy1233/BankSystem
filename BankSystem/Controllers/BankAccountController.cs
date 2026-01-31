@@ -1,11 +1,14 @@
-﻿using BusinessCore.BankSystem.Features.BankAccount.Commands.Models;
+﻿//using BusinessCore.BankSystem.Features.BankAccount.Commands.Models;
+using BusinessCore.BankSystem.Features.BankAccount.Commands.Models;
 using BusinessCore.BankSystem.Features.BankAccount.Queries.Models;
+using BusinessCore.BankSystem.Features.BankAccount.Queries.Responses;
 using Domainlayer.BankSystem.AppMetaData;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 namespace BankSystem.Controllers
 {
+
     [ApiController]
     public class BankAccountController : AppControllerBase
     {
@@ -17,95 +20,91 @@ namespace BankSystem.Controllers
             _mediator = mediator;
             _logger = logger;
         }
-
+        #region Query Endpoints (GET)
         [HttpGet(Router.BankAccount.GetAll)]
-        public async Task<IActionResult> GetAllAccountsAsync()
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(Response<List<BankAccountResponse>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 401)]
+        [ProducesResponseType(typeof(Response<string>), 403)]
+        public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var response = await _mediator.Send(new GetAllBankAccountQuery());
-                return NewResult(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while getting all accounts");
-                return BadRequest($"Error: {ex.Message}");
-            }
+            var response = await _mediator.Send(new GetAllBankAccountQuery());
+            return StatusCode((int)response.StatusCode, response);
         }
+
+
+
+        [HttpGet(Router.BankAccount.GetMyAccounts)]
+        [ProducesResponseType(typeof(Response<List<BankAccountResponse>>), 200)]
+        public async Task<IActionResult> GetMyAccounts()
+        {
+            var response = await _mediator.Send(new GetMyAccountQuery());
+            return StatusCode((int)response.StatusCode, response);
+        }
+
 
         [HttpGet(Router.BankAccount.GetById)]
-        public async Task<IActionResult> GetAccountByIdAsync([FromRoute] int id)
+        [ProducesResponseType(typeof(Response<BankAccountResponse>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 404)]
+        public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            try
-            {
-                var response = await _mediator.Send(new GetBankAccountByIdQuery(id));
-                return NewResult(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error occurred while getting account by ID: {id}");
-                return BadRequest($"Error: {ex.Message}");
-            }
+            var response = await _mediator.Send(new GetAccountsByUserIdQuery(id));
+            return StatusCode((int)response.StatusCode, response);
         }
 
-        [HttpGet(Router.BankAccount.GetByUserId)]
-        public async Task<IActionResult> GetAllAccountsByUserIdAsync([FromRoute] int id)
-        {
-            try
-            {
-                var response = await _mediator.Send(new GetBankAccountAllByIdQuery(id));
-                return NewResult(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error occurred while getting all accounts by User ID: {id}");
-                return BadRequest($"Error: {ex.Message}");
-            }
-        }
 
+        [HttpGet(Router.BankAccount.GetByAccountNumber)]
+        [ProducesResponseType(typeof(Response<BankAccountResponse>), 200)]
+        public async Task<IActionResult> GetByAccountNumber([FromRoute] string accountNumber)
+        {
+            var response = await _mediator.Send(new GetByAccountNumberQuery(accountNumber));
+            return StatusCode((int)response.StatusCode, response);
+        }
+        #endregion
+
+
+        #region Command Endpoints (POST, PUT, DELETE)
+        /// <summary>
+        /// Create new bank account
+        /// </summary>
         [HttpPost(Router.BankAccount.Create)]
-        public async Task<IActionResult> CreateAccountAsync([FromBody] CreateAccountCommand command)
+        [ProducesResponseType(typeof(Response<BankAccountResponse>), 201)]
+        [ProducesResponseType(typeof(Response<string>), 400)]
+        public async Task<IActionResult> Create([FromBody] CreateAccountCommand command)
         {
-            try
-            {
-                var response = await _mediator.Send(command);
-                return NewResult(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while creating account");
-                return BadRequest($"Error: {ex.Message}");
-            }
+            var response = await _mediator.Send(command);
+            // لاحظ هنا: الـ StatusCode يأتي ديناميكياً من الـ Response object
+            return StatusCode((int)response.StatusCode, response);
         }
 
+        /// <summary>
+        /// Update account type
+        /// </summary>
         [HttpPut(Router.BankAccount.UpdateAccountType)]
-        public async Task<IActionResult> UpdateAccountTypeAsync([FromBody] UpdateAccountTypeCommand command)
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 400)]
+        [ProducesResponseType(typeof(Response<string>), 404)]
+        public async Task<IActionResult> UpdateAccountType([FromBody] UpdateAccountTypeCommand command)
         {
-            try
-            {
-                var response = await _mediator.Send(command);
-                return NewResult(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating account type");
-                return BadRequest($"Error: {ex.Message}");
-            }
+            var response = await _mediator.Send(command);
+            return StatusCode((int)response.StatusCode, response);
         }
 
+
+        /// <summary>
+        /// Delete account (soft delete)
+        /// </summary>
         [HttpDelete(Router.BankAccount.Delete)]
-        public async Task<IActionResult> DeleteAccountAsync([FromBody] DeleteAccountCommand command)
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 404)]
+        public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            try
-            {
-                var response = await _mediator.Send(command);
-                return NewResult(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting account");
-                return BadRequest($"Error: {ex.Message}");
-            }
+            // تأكد أن DeleteAccountCommand يحتوي على Id
+            var response = await _mediator.Send(new DeleteAccountCommand { id = id });
+            return StatusCode((int)response.StatusCode, response);
         }
+
+
+        #endregion
     }
 }

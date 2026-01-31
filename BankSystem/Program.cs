@@ -1,11 +1,9 @@
 using ApplicationLayer.BankSystem.ModuleDependences;
 using BusinessCore.BankSystem;
 using BusinessCore.BankSystem.MiddleWare;
-using Domainlayer.BankSystem.Entites;
 using InfrastructureLayer.BankSystem.Data;
 using InfrastructureLayer.BankSystem.ModuleDependences;
-using InfrastructureLayer.BankSystem.Seeder;
-using Microsoft.AspNetCore.Identity;
+//using InfrastructureLayer.BankSystem.Seeder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -57,17 +55,44 @@ namespace BankSystem
 
             #endregion
 
+            #region logging setting
+            // 1. ????? Serilog ???????
+            Log.Logger = new LoggerConfiguration()
+                // ????? ?? ?? "?????" ???? ????? ????? ???? ?? ???? ?? appsettings.json (??? ???? ??? SQL Server)
+                .ReadFrom.Configuration(builder.Configuration)
+
+                // ????????? ???????? ???? ??? ??????? ?? ?????
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+                .Enrich.FromLogContext() // ??? ???? ???? ???? ??? UserId ???? IP
+
+                // ??????? ?? ??? Console
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+
+                // ??????? ?? ????? (File)
+                .WriteTo.File(
+                    path: "logs/log-.txt",
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+
+                .CreateLogger();
+
+            // 2. ????? .NET ???????? Serilog ????? ?? ??? Logger ?????????
+            builder.Host.UseSerilog();
+            #endregion
+
 
 
 
             var app = builder.Build();
-            using (var scope = app.Services.CreateScope())
-            {
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
-                await RoleSeeder.SeedAsync(roleManager);
-                await UserSeeder.SeedAsync(userManager);
-            }
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            //    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+            //    await RoleSeeder.SeedAsync(roleManager);
+            //    await UserSeeder.SeedAsync(userManager);
+            //}
 
 
 
@@ -81,24 +106,6 @@ namespace BankSystem
             #region Localization Middleware
             var options = app.Services.GetService<IOptions<RequestLocalizationOptions>>();
             app.UseRequestLocalization(options.Value);
-            #endregion
-
-            #region Serilog Configuration
-            Log.Logger = new LoggerConfiguration()
-           .MinimumLevel.Debug()
-           .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
-           .Enrich.FromLogContext()
-
-             .WriteTo.Console(
-             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .WriteTo.File(
-             path: "logs/log-.txt",
-             rollingInterval: RollingInterval.Day,
-            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-
-              .CreateLogger();
-
-            //builder.Services.AddSerilog();
             #endregion
 
 

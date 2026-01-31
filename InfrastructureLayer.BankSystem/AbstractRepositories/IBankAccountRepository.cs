@@ -8,5 +8,6 @@ namespace InfrastructureLayer.BankSystem.AbstractRepositories
         Task<BankAccount> GetByAccountNumberAsync(string accountNumber);
         Task<IEnumerable<BankAccount>> GetAccountsByUserIdAsync(int userId);
         Task<IEnumerable<BankAccount>> GetActiveAccountsAsync();
+        Task<BankAccount?> GetUserIdAsync(int id);
     }
 }

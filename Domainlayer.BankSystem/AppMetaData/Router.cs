@@ -64,7 +64,8 @@
             public const string GetByAccountNumber = Prefix + "/GetByAccountNumber/{accountNumber}";
             public const string Create = Prefix + "/Create";
             public const string UpdateAccountType = Prefix + "/UpdateAccountType";
-            public const string Delete = Prefix + "/Delete";
+            public const string Delete = Prefix + "/Delete" + SignleRoute;
+            public const string GetMyAccounts = Prefix + "/GetMyAccounts";
         }
     }
 }

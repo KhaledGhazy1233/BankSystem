@@ -337,8 +337,12 @@ namespace ApplicationLayer.BankSystem.ImplementServices
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
                 // ✅ JTI added in GenerateJwtToken
             };
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            // وإذا كان فيه Claims تانية مخزنة للمستخدم ضيفها برضه
             claims.AddRange(userClaims);
 
             return claims;

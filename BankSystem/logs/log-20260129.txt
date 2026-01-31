@@ -1,0 +1,40 @@
+2026-01-29 15:55:23.962 +02:00 [INF] User profile is available. Using 'C:\Users\skytop\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-01-29 15:55:24.984 +02:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [AspNetRoles] AS [a]
+2026-01-29 15:55:25.027 +02:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [AspNetUsers] AS [a]
+2026-01-29 15:55:25.867 +02:00 [WRN] The WebRootPath was not found: D:\BankSystem\BankSystem\BankSystem\BankSystem\wwwroot. Static files may be unavailable.
+2026-01-29 15:55:25.901 +02:00 [INF] Now listening on: http://localhost:5068
+2026-01-29 15:55:25.907 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-01-29 15:55:25.911 +02:00 [INF] Hosting environment: Development
+2026-01-29 15:55:25.913 +02:00 [INF] Content root path: D:\BankSystem\BankSystem\BankSystem\BankSystem
+2026-01-29 15:55:26.381 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/swagger/index.html - null null
+2026-01-29 15:55:26.634 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/swagger/index.html - 200 null text/html;charset=utf-8 254.42ms
+2026-01-29 15:55:26.655 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/_vs/browserLink - null null
+2026-01-29 15:55:26.659 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/_framework/aspnetcore-browser-refresh.js - null null
+2026-01-29 15:55:26.684 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/_framework/aspnetcore-browser-refresh.js - 200 13756 application/javascript; charset=utf-8 24.3309ms
+2026-01-29 15:55:26.730 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/_vs/browserLink - 200 null text/javascript; charset=UTF-8 74.8385ms
+2026-01-29 15:55:26.898 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/swagger/v1/swagger.json - null null
+2026-01-29 15:55:27.074 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 176.6916ms
+2026-01-29 23:57:55.520 +02:00 [INF] User profile is available. Using 'C:\Users\skytop\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-01-29 23:57:56.306 +02:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [AspNetRoles] AS [a]
+2026-01-29 23:57:56.354 +02:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [AspNetUsers] AS [a]
+2026-01-29 23:57:57.207 +02:00 [WRN] The WebRootPath was not found: D:\BankSystem\BankSystem\BankSystem\BankSystem\wwwroot. Static files may be unavailable.
+2026-01-29 23:57:57.239 +02:00 [INF] Now listening on: http://localhost:5068
+2026-01-29 23:57:57.245 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-01-29 23:57:57.250 +02:00 [INF] Hosting environment: Development
+2026-01-29 23:57:57.253 +02:00 [INF] Content root path: D:\BankSystem\BankSystem\BankSystem\BankSystem
+2026-01-29 23:57:58.839 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/swagger/index.html - null null
+2026-01-29 23:57:59.147 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/swagger/index.html - 200 null text/html;charset=utf-8 311.2676ms
+2026-01-29 23:57:59.181 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/_framework/aspnetcore-browser-refresh.js - null null
+2026-01-29 23:57:59.186 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/_vs/browserLink - null null
+2026-01-29 23:57:59.199 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/_framework/aspnetcore-browser-refresh.js - 200 13756 application/javascript; charset=utf-8 18.5532ms
+2026-01-29 23:57:59.249 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/_vs/browserLink - 200 null text/javascript; charset=UTF-8 62.1692ms
+2026-01-29 23:57:59.416 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5068/swagger/v1/swagger.json - null null
+2026-01-29 23:57:59.606 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5068/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 189.387ms

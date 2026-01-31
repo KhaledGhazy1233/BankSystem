@@ -24,7 +24,7 @@ namespace InfrastructureLayer.BankSystem.ImplementRepositories
         {
             return await
                     _BankAccounts.Where(x => x.UserId == userId && !x.ISDeleted)
-                    .Include(x => x.user)
+                    .Include(x => x.User)
                     .ToListAsync();
         }
 
@@ -33,6 +33,12 @@ namespace InfrastructureLayer.BankSystem.ImplementRepositories
             return await
                    _BankAccounts.Where(x => x.IsActive && !x.ISDeleted)
                    .ToListAsync();
+        }
+        public async Task<BankAccount?> GetUserIdAsync(int id)
+        {
+            return await _BankAccounts
+                .Include(x => x.User) // الربط مع الـ ApplicationUser اللي عملناه
+                .FirstOrDefaultAsync(x => x.UserId == id && !x.ISDeleted);
         }
     }
 }
