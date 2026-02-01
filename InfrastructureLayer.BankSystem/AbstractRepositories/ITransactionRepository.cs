@@ -1,14 +1,15 @@
-﻿using InfrastructureLayer.BankSystem.InfrastructureBases;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-
+﻿//using System.Transactions;
+using Domainlayer.BankSystem.Entites;
+using InfrastructureLayer.BankSystem.InfrastructureBases;
 namespace InfrastructureLayer.BankSystem.AbstractRepositories
 {
     public interface ITransactionRepository : IRepository<Transaction>
     {
+        Task<IEnumerable<Transaction>> GetByAccountNumberAsync(string accountNumber);
+        Task<decimal> GetCurrentBalanceAsync(string accountNumber);
+        Task<bool> HasSufficientBalanceAsync(string accountNumber, decimal amount);
+        Task<bool> LockAccountAsync(string accountNumber);
+        Task UnlockAccountAsync(string accountNumber);
+        Task UpdateTransactionStatusAsync(int transactionId, string status);
     }
 }

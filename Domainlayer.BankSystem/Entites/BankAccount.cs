@@ -12,6 +12,8 @@ namespace Domainlayer.BankSystem.Entites
         public decimal Balance { get; set; }
         public CurrencyEnum Currency { get; set; }
         public bool IsActive { get; set; }
+        public bool IsLocked { get; set; }
+        public DateTime? LockedAt { get; set; }
         public DateTime CreatedData { get; set; }
         public DateTime UpdatedData { get; set; }
         public int UserId { get; set; }

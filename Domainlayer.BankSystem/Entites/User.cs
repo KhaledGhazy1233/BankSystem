@@ -10,7 +10,7 @@
         public string NationallId { get; set; }
         public string Nationality { get; set; }
         //public virtual ICollection<BankAccount>? BankAccounts { get; set; }
-        public virtual ICollection<AuditLog>? AuditLogs { get; set; }
+        //public virtual ICollection<AuditLog>? AuditLogs { get; set; }
 
 
     }

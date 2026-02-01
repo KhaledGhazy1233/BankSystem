@@ -30,6 +30,15 @@ namespace InfrastructureLayer.BankSystem.Data
             modelBuilder.Entity<BankAccount>()
                 .Property(e => e.Balance)
                 .HasColumnType("decimal(18,2)"); // عشان الدقة في الحسابات البنكية
+
+            modelBuilder.Entity<BankAccount>(entity =>
+            {
+                entity.Property(e => e.IsLocked)
+                      .HasDefaultValue(false); // نحدد قيمة افتراضية
+
+                entity.Property(e => e.LockedAt)
+                      .IsRequired(false); // نأكد إنه ينفع يكون Null
+            });
         }
 
         public DbSet<AuditLog> AuditLogs { get; set; }

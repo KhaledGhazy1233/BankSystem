@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domainlayer.BankSystem.Entites
 {
@@ -13,12 +8,14 @@ namespace Domainlayer.BankSystem.Entites
         public int ToAccountId { get; set; }
         [ForeignKey("ToAccountId")]
         [InverseProperty("SendTransaction")]
-        public  BankAccount ?ToAccount { get; set; }
+        public BankAccount? ToAccount { get; set; }
         public int FromAccountId { get; set; }
-       
+
         [ForeignKey("FromAccountId")]
         [InverseProperty("ReceiveTransaction")]
-        public BankAccount ?FromAccount { get; set; }
+        public BankAccount? FromAccount { get; set; }
+        public string Status { get; set; } = "Pending"; // الحالة (Pending, Completed, Failed)
+        public DateTime? UpdatedAt { get; set; }       // تاريخ آخر تحديث للحالة
         public bool ISDeleted { get; set; } = false;
     }
 

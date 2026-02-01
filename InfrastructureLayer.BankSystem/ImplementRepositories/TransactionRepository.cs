@@ -1,19 +1,82 @@
-﻿using InfrastructureLayer.BankSystem.AbstractRepositories;
+﻿//using System.Transactions;
+using Domainlayer.BankSystem.Entites;
+using InfrastructureLayer.BankSystem.AbstractRepositories;
 using InfrastructureLayer.BankSystem.Data;
 using InfrastructureLayer.BankSystem.InfrastructureBases;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-
+using Microsoft.EntityFrameworkCore;
 namespace InfrastructureLayer.BankSystem.ImplementRepositories
 {
-    public class TransactionRepository : Repository<Transaction>,ITransactionRepository
+    public class TransactionRepository : Repository<Transaction>, ITransactionRepository
     {
+        private readonly DbSet<Transaction> _transactions;
+        private readonly DbSet<BankAccount> _bankaccount;
+
         public TransactionRepository(ApplicationDbContext context) : base(context)
         {
+            _transactions = context.Set<Transaction>();
+            _bankaccount = context.Set<BankAccount>();
+        }
+
+        public async Task<IEnumerable<Transaction>> GetByAccountNumberAsync(string accountNumber)
+        {
+            return await _transactions
+                // بنعمل Include للحسابات عشان نقدر نوصل للـ AccountNumber اللي جواهم
+                .Include(t => t.FromAccount)
+                .Include(t => t.ToAccount)
+                .Where(t => t.FromAccount.AccountNumber == accountNumber
+                         || t.ToAccount.AccountNumber == accountNumber)
+                .OrderByDescending(t => t.Id) // أو استخدم TransactionDate لو موجودة عندك في الجدول
+                .ToListAsync();
+        }
+        public async Task<decimal> GetCurrentBalanceAsync(string accountNumber)
+        {
+            var account = await _bankaccount
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
+
+            return account?.Balance ?? 0;
+        }
+
+        public async Task<bool> HasSufficientBalanceAsync(string accountNumber, decimal amount)
+        {
+            var balance = await GetCurrentBalanceAsync(accountNumber);
+            return balance >= amount;
+        }
+        public async Task<bool> LockAccountAsync(string accountNumber)
+        {
+            var account = await _bankaccount
+                .FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
+
+            if (account == null || account.IsLocked) return false;
+
+            account.IsLocked = true;
+            account.LockedAt = DateTime.UtcNow;
+            await base.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task UnlockAccountAsync(string accountNumber)
+        {
+            var account = await _bankaccount
+                .FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);//==context.BankAccounts
+
+            if (account != null)
+            {
+                account.IsLocked = false;
+                account.LockedAt = null;
+                await base.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateTransactionStatusAsync(int transactionId, string status)
+        {
+            var transaction = await _transactions.FindAsync(transactionId);
+            if (transaction != null)
+            {
+                transaction.Status = status;
+                transaction.UpdatedAt = DateTime.UtcNow;
+                await base.SaveChangesAsync();
+            }
         }
     }
 }
