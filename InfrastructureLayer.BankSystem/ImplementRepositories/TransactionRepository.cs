@@ -4,6 +4,7 @@ using InfrastructureLayer.BankSystem.AbstractRepositories;
 using InfrastructureLayer.BankSystem.Data;
 using InfrastructureLayer.BankSystem.InfrastructureBases;
 using Microsoft.EntityFrameworkCore;
+//using static Domainlayer.BankSystem.AppMetaData.Router;
 namespace InfrastructureLayer.BankSystem.ImplementRepositories
 {
     public class TransactionRepository : Repository<Transaction>, ITransactionRepository
@@ -17,17 +18,20 @@ namespace InfrastructureLayer.BankSystem.ImplementRepositories
             _bankaccount = context.Set<BankAccount>();
         }
 
+
+
         public async Task<IEnumerable<Transaction>> GetByAccountNumberAsync(string accountNumber)
         {
             return await _transactions
-                // بنعمل Include للحسابات عشان نقدر نوصل للـ AccountNumber اللي جواهم
-                .Include(t => t.FromAccount)
-                .Include(t => t.ToAccount)
-                .Where(t => t.FromAccount.AccountNumber == accountNumber
-                         || t.ToAccount.AccountNumber == accountNumber)
-                .OrderByDescending(t => t.Id) // أو استخدم TransactionDate لو موجودة عندك في الجدول
+                .Include(t => t.FromAccount).Include(t => t.ToAccount)
+                .Where(t => (t.FromAccount != null && t.FromAccount.AccountNumber == accountNumber)
+                         || (t.ToAccount != null && t.ToAccount.AccountNumber == accountNumber))
                 .ToListAsync();
         }
+
+
+
+
         public async Task<decimal> GetCurrentBalanceAsync(string accountNumber)
         {
             var account = await _bankaccount
@@ -42,18 +46,21 @@ namespace InfrastructureLayer.BankSystem.ImplementRepositories
             var balance = await GetCurrentBalanceAsync(accountNumber);
             return balance >= amount;
         }
+
+
         public async Task<bool> LockAccountAsync(string accountNumber)
         {
-            var account = await _bankaccount
-                .FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
-
+            var account = await _bankaccount.FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
             if (account == null || account.IsLocked) return false;
-
-            account.IsLocked = true;
+            account.IsLocked = true; // تعديل في الميموري فقط
             account.LockedAt = DateTime.UtcNow;
+
             await base.SaveChangesAsync();
             return true;
         }
+
+
+
 
         public async Task UnlockAccountAsync(string accountNumber)
         {

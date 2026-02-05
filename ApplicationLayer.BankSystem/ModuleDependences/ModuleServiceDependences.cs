@@ -30,6 +30,7 @@ namespace ApplicationLayer.BankSystem.ModuleDependences
             services.AddTransient<IAddUserImageService, AddUserImageService>();
             services.AddTransient<IAuthorizationService, AuthorizationService>();
             services.AddScoped<IBankAccountService, BankAccountService>();
+            services.AddScoped<ITransactionService, TransactionService>();
             services.AddSingleton(new ConcurrentDictionary<string, RefreshToken>());
             services.AddHttpContextAccessor();
             // Add Authentication with JWT

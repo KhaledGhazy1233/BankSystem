@@ -67,5 +67,12 @@
             public const string Delete = Prefix + "/Delete" + SignleRoute;
             public const string GetMyAccounts = Prefix + "/GetMyAccounts";
         }
+        public static class Transaction
+        {
+            public const string Prefix = Rule + "Transaction";
+            public const string Transfer = Prefix + "/Transfer";
+            public const string Deposit = Prefix + "/Deposit";
+            public const string Withdraw = Prefix + "/Withdraw";
+        }
     }
 }
