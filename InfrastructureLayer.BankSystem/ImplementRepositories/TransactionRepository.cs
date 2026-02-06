@@ -85,5 +85,22 @@ namespace InfrastructureLayer.BankSystem.ImplementRepositories
                 await base.SaveChangesAsync();
             }
         }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountNumberAsync(string accountNumber, int pageNumber, int pageSize)
+        {
+            return await _transactions
+                .AsNoTracking() // مهم جداً لأننا بنقرأ فقط (Read-Only)
+                .Include(t => t.FromAccount) // عشان نعرف الحساب اللي بعت
+                .Include(t => t.ToAccount)   // عشان نعرف الحساب اللي استلم
+                .Where(t => t.FromAccount.AccountNumber == accountNumber ||
+                            t.ToAccount.AccountNumber == accountNumber)
+                .OrderByDescending(t => t.TransactionDate) // الأحدث دائماً في الأول
+                .Skip((pageNumber - 1) * pageSize) // تخطي الصفحات السابقة
+                .Take(pageSize) // أخذ عدد معين فقط (مثلاً 10)
+                .ToListAsync();
+        }
+
+
+
     }
 }

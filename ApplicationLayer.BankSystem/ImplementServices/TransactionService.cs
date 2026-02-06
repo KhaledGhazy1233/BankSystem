@@ -160,6 +160,18 @@ namespace ApplicationLayer.BankSystem.ImplementServices
                 await ReleaseLocksHelper(request.AccountNumber);
             }
         }
+        public async Task<IEnumerable<Transaction>> GetHistoryEntitiesAsync(string accountNumber, int page, int size)
+        {
+            var account = await _accountRepo.GetByAccountNumberAsync(accountNumber);
+            if (account == null) throw new Exception("Account not found");
+
+            // نستخدم الـ Repository اللي عملناه
+            return await _transactionRepo.GetTransactionsByAccountNumberAsync(accountNumber, page, size);
+        }
+
+
+
+
 
 
         // --- Helper Methods ---
@@ -229,7 +241,14 @@ namespace ApplicationLayer.BankSystem.ImplementServices
             foreach (var num in nums) await _transactionRepo.UnlockAccountAsync(num);
             await _context.SaveChangesAsync();
         }
-
+        public string GetTransactionType(Transaction t, string currentAcc)
+        {
+            if (t.FromAccountId != null && t.ToAccountId != null)
+                return "Transfer";
+            if (t.FromAccount?.AccountNumber == currentAcc)
+                return "Withdraw";
+            return "Deposit";
+        }
 
     }
 }

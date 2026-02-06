@@ -11,5 +11,9 @@ namespace InfrastructureLayer.BankSystem.AbstractRepositories
         Task<bool> LockAccountAsync(string accountNumber);
         Task UnlockAccountAsync(string accountNumber);
         Task UpdateTransactionStatusAsync(int transactionId, string status);
+
+        Task<IEnumerable<Transaction>> GetTransactionsByAccountNumberAsync(string accountNumber, int pageNumber, int pageSize);
+
+
     }
 }

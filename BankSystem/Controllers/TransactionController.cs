@@ -1,5 +1,6 @@
 ﻿using BusinessCore.BankSystem.Features.Transaction.Commands.Models;
 using BusinessCore.BankSystem.Features.Transaction.Commands.Responses;
+using BusinessCore.BankSystem.Features.Transaction.Queries.Models;
 using Domainlayer.BankSystem.AppMetaData;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -50,6 +51,18 @@ namespace BankSystem.Controllers
             return StatusCode((int)response.StatusCode, response);
         }
 
+
+
+        [HttpGet(Router.Transaction.GetHistory)]
+        [ProducesResponseType(typeof(Response<IEnumerable<TransferResponse>>), 200)]
+        public async Task<IActionResult> GetHistory([FromQuery] GetHistoryQueryPagination query)
+        {
+            // الـ FromQuery بتسمح لنا نبعت الـ AccountNumber والـ Pagination في الـ URL
+            // مثال: /api/v1/transaction/history?AccountNumber=123&PageNumber=1&PageSize=10
+
+            var response = await _mediator.Send(query);
+            return StatusCode((int)response.StatusCode, response);
+        }
         #endregion
     }
 }

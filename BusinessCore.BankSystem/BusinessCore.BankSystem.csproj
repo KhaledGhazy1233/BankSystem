@@ -22,8 +22,6 @@
     <Folder Include="Features\Authorization\Commands\Responses\" />
     <Folder Include="Features\Authorization\Queries\Responses\" />
     <Folder Include="Features\BankAccount\Commands\Responses\" />
-    <Folder Include="Features\Transaction\Queries\Handler\" />
-    <Folder Include="Features\Transaction\Queries\Models\" />
     <Folder Include="Features\Transaction\Queries\Responses\" />
     <Folder Include="Mapping\ApplicationUser\Commands\" />
   </ItemGroup>

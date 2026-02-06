@@ -73,6 +73,7 @@
             public const string Transfer = Prefix + "/Transfer";
             public const string Deposit = Prefix + "/Deposit";
             public const string Withdraw = Prefix + "/Withdraw";
+            public const string GetHistory = Prefix + "/GetHistory";
         }
     }
 }
