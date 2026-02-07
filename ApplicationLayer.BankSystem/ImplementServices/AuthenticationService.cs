@@ -55,9 +55,16 @@ namespace ApplicationLayer.BankSystem.ImplementServices
                 // ✅ NO Token = accessToken (security best practice)
             };
 
-            await _refreshTokenRepository.AddAsync(userRefreshToken);
-            await _refreshTokenRepository.SaveChangesAsync();
-
+            try
+            {
+                await _refreshTokenRepository.AddAsync(userRefreshToken);
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                var inner = ex.InnerException?.Message;
+                // الـ inner ده هو اللي فيه السر (Conflict, Null, or Type mismatch)
+            }
             return new JwtAuthResult
             {
                 AccessToken = accessToken,

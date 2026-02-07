@@ -12,6 +12,6 @@ namespace Domainlayer.BankSystem.Entites
         public virtual ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
 
         [InverseProperty(nameof(UserRefreshToken.user))]
-        public virtual ICollection<UserRefreshToken> UserRefreshTokens { get; set; }
+        public virtual ICollection<UserRefreshToken> UserRefreshTokens { get; set; } = new List<UserRefreshToken>(); // ✅ أضفنا القيمة الابتدائية هنا
     }
 }
