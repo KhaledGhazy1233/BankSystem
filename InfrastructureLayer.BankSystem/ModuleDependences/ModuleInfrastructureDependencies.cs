@@ -2,11 +2,6 @@
 using InfrastructureLayer.BankSystem.ImplementRepositories;
 using InfrastructureLayer.BankSystem.InfrastructureBases;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InfrastructureLayer.BankSystem.ModuleDependences
 {
@@ -16,10 +11,11 @@ namespace InfrastructureLayer.BankSystem.ModuleDependences
         {
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITransactionTypeRepository, TransactionTypeRepository>();
-            services.AddScoped<ITransactionRepository, TransactionRepository>();    
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<IBankAccountRepository, BankAccountRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-            services.AddTransient(typeof(IRepository<>),typeof(Repository<>));
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+            services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
             return services;
         }
 

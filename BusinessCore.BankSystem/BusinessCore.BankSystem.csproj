@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Features\AuditLog\Commands\" />
     <Folder Include="Features\Authorization\Commands\Responses\" />
     <Folder Include="Features\Authorization\Queries\Responses\" />
     <Folder Include="Features\BankAccount\Commands\Responses\" />

@@ -13,5 +13,8 @@ namespace Domainlayer.BankSystem.Entites
 
         [InverseProperty(nameof(UserRefreshToken.user))]
         public virtual ICollection<UserRefreshToken> UserRefreshTokens { get; set; } = new List<UserRefreshToken>(); // ✅ أضفنا القيمة الابتدائية هنا
+        [InverseProperty(nameof(AuditLog.User))]
+        public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>(); // ✅ أضفنا القيمة الابتدائية هنا
+
     }
 }

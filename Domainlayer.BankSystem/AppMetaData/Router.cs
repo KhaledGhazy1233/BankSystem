@@ -75,5 +75,12 @@
             public const string Withdraw = Prefix + "/Withdraw";
             public const string GetHistory = Prefix + "/GetHistory";
         }
+        public static class AuditLog
+        {
+            public const string Prefix = Rule + "AuditLog";
+            public const string GetUserActivity = Prefix + "/GetUserActivity";
+            public const string GetById = Prefix + "/GetById" + SignleRoute;
+
+        }
     }
 }
